@@ -18,8 +18,6 @@ class Shop(models.Model):
     description = models.CharField(max_length=256)
     imageurl = models.CharField(max_length=127)
 
-    owner = models.ForeignKey(get_user_model(), related_name="shop", on_delete=models.CASCADE)
-
     objects = models.Manager
 
     def __str__(self):
@@ -29,17 +27,17 @@ class Shop(models.Model):
         verbose_name_plural = "Shops"
 
 
-# class Image(models.Model):
-#     image = models.ImageField(upload_to="images/")
-#     product = models.ForeignKey("Product", on_delete=models.CASCADE, related_name="product")
-#
-#     is_main = models.BooleanField(default=False)
-#
-#     def save(self, *args, **kwargs):
-#         if self.is_main:
-#             self.product.image = self.image
-#             self.product.save()
-#         super().save(*args, **kwargs)
+class Image(models.Model):
+    image = models.ImageField(upload_to="images/")
+    product = models.ForeignKey("Product", on_delete=models.CASCADE, related_name="product")
+
+    is_main = models.BooleanField(default=False)
+
+    def save(self, *args, **kwargs):
+        if self.is_main:
+            self.product.image = self.image
+            self.product.save()
+        super().save(*args, **kwargs)
 
 
 class Product(models.Model):
@@ -49,8 +47,9 @@ class Product(models.Model):
     amount = models.PositiveIntegerField(default=0)
     price = models.DecimalField(decimal_places=2, max_digits=10)
 
-    image = models.ImageField(upload_to="images/", null=True, blank=True)
     active = models.BooleanField(default=False)
+    main_photo = models.ImageField(upload_to='images/', blank=True, null=True,
+                                   editable=False)
 
     category = models.ForeignKey("Category", on_delete=models.CASCADE, related_name="categories")
 
@@ -69,6 +68,9 @@ class Category(models.Model):
 
     parent = models.ForeignKey("self", on_delete=models.CASCADE, null=True, blank=True)
     shop = models.ForeignKey(Shop, on_delete=models.CASCADE, related_name="shops")
+
+
+    objects = models.Manager
 
     def __str__(self):
         return self.title
